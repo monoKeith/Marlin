@@ -1646,21 +1646,24 @@ void update_variable() {
   // x
   displayFloat = current_position.x * MINUNITMULT;
   if (last_position_x != displayFloat) {
-    DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 1,
+    DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White, 
+                          last_position_x > displayFloat ? Color_Bg_Orange : Color_Bg_Green, 3, 1,
                           35, Status_Row_3, displayFloat);
     last_position_x = displayFloat;
   }
   // y
   displayFloat = current_position.y * MINUNITMULT;
   if (last_position_y != displayFloat){
-    DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 1,
+    DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White,  
+                          last_position_y > displayFloat ? Color_Bg_Orange : Color_Bg_Green, 3, 1,
                           121, Status_Row_3, displayFloat);
     last_position_y = displayFloat;
   }
   // z
   displayFloat = current_position.z * MINUNITMULT;
   if (last_position_z != displayFloat){
-    DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 1,
+    DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White,  
+                          last_position_z > displayFloat ? Color_Bg_Orange : Color_Bg_Green, 3, 1,
                           207, Status_Row_3, displayFloat);
     last_position_z = displayFloat;
   }
@@ -1896,6 +1899,10 @@ void Draw_Status_Area(const bool with_update) {
   DWIN_ICON_Show(ICON, ICON_MoveX, 15, Status_Row_3 - 1);
   DWIN_ICON_Show(ICON, ICON_MoveY, 101, Status_Row_3 - 1);
   DWIN_ICON_Show(ICON, ICON_MoveZ, 187, Status_Row_3 - 1);
+  DWIN_Draw_String(true, true, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 35, Status_Row_3, F(" --- "));
+  DWIN_Draw_String(true, true, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 121, Status_Row_3, F(" --- "));
+  DWIN_Draw_String(true, true, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 207, Status_Row_3, F(" --- "));
+
 
   if (with_update) {
     DWIN_UpdateLCD();
