@@ -231,6 +231,9 @@ enum processID : uint8_t {
 #define Color_Bg_Blue     0x1125  // Dark blue background color
 #define Color_Bg_Black    0x0841  // Black background color
 #define Color_Bg_Red      0xF00F  // Red background color
+#define Color_Bg_Orange   0xFA20  // Orange background color
+#define Color_Bg_Purple   0x7ABF  // Purple background color
+#define Color_Bg_Green    0x1D05  // Green background color
 #define Popup_Text_Color  0xD6BA  // Popup font background color
 #define Line_Color        0xFB77  // Split line color
 #define Rectangle_Color   0xEDE9  // Orange square cursor color
