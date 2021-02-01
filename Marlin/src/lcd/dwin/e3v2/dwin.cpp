@@ -1611,14 +1611,14 @@ void update_variable() {
     // Current Temp
     displayInteger = thermalManager.temp_bed.celsius;
     if (last_temp_bed_current != displayInteger) {
-      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_Green, Color_Bg_Black, 3, 
+      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, DWIN_Temp_Colorize(displayInteger), Color_Bg_Black, 3, 
                           178, Status_Row_1, displayInteger);
       last_temp_bed_current = displayInteger;
     }
     // Target Temp
     displayInteger = thermalManager.temp_bed.target;
     if (last_temp_bed_target != displayInteger) {
-      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_Purple, Color_Bg_Black, 3, 
+      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, DWIN_Temp_Colorize(displayInteger), Color_Bg_Black, 3, 
                           178 + 4 * STAT_CHR_W + 6, Status_Row_1, displayInteger);
       last_temp_bed_target = displayInteger;
     }
@@ -1643,28 +1643,28 @@ void update_variable() {
 
   /* X Y Z coordinates */
   static float last_position_x, last_position_y, last_position_z, displayFloat;
-  // x
+  // x: 1 decimal place
   displayFloat = current_position.x * MINUNITMULT;
   if (last_position_x != displayFloat) {
     DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White, 
                           last_position_x > displayFloat ? Color_Bg_Orange : Color_Bg_Green, 3, 1,
-                          35, Status_Row_3, displayFloat);
+                          33, Status_Row_3, displayFloat);
     last_position_x = displayFloat;
   }
-  // y
+  // y: 1 decimal place
   displayFloat = current_position.y * MINUNITMULT;
   if (last_position_y != displayFloat){
     DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White,  
                           last_position_y > displayFloat ? Color_Bg_Orange : Color_Bg_Green, 3, 1,
-                          121, Status_Row_3, displayFloat);
+                        116, Status_Row_3, displayFloat);
     last_position_y = displayFloat;
   }
-  // z
-  displayFloat = current_position.z * MINUNITMULT;
+  // z: 2 decimal place
+  displayFloat = current_position.z * 100;
   if (last_position_z != displayFloat){
     DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White,  
-                          last_position_z > displayFloat ? Color_Bg_Orange : Color_Bg_Green, 3, 1,
-                          207, Status_Row_3, displayFloat);
+                          last_position_z > displayFloat ? Color_Bg_Orange : Color_Bg_Green, 3, 2,
+                          199, Status_Row_3, displayFloat);
     last_position_z = displayFloat;
   }
 }
@@ -1868,7 +1868,7 @@ void Draw_Status_Area(const bool with_update) {
   #if HAS_HOTEND
     DWIN_ICON_Show(ICON, ICON_HotendTemp, 13, Status_Row_1 - 1);
     DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33, Status_Row_1, thermalManager.temp_hotend[0].celsius);
-    DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 33 + 3 * STAT_CHR_W + 5, Status_Row_1, F("/"));
+    // DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 33 + 3 * STAT_CHR_W + 5, Status_Row_1, F("/"));
     DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33 + 4 * STAT_CHR_W + 6, Status_Row_1, thermalManager.temp_hotend[0].target);
   #endif
   #if HOTENDS > 1
@@ -1879,7 +1879,7 @@ void Draw_Status_Area(const bool with_update) {
   #if HAS_HEATED_BED
     DWIN_ICON_Show(ICON, ICON_BedTemp, 158, Status_Row_1 - 1);
     DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 178, Status_Row_1, thermalManager.temp_bed.celsius);
-    DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 178 + 3 * STAT_CHR_W + 5, Status_Row_1, F("/"));
+    // DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 178 + 3 * STAT_CHR_W + 5, Status_Row_1, F("/"));
     DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 178 + 4 * STAT_CHR_W + 6, Status_Row_1, thermalManager.temp_bed.target);
   #endif
   
@@ -1896,9 +1896,9 @@ void Draw_Status_Area(const bool with_update) {
   #endif
 
   /* X Y Z icon */
-  DWIN_ICON_Show(ICON, ICON_MoveX, 15, Status_Row_3 - 1);
-  DWIN_ICON_Show(ICON, ICON_MoveY, 101, Status_Row_3 - 1);
-  DWIN_ICON_Show(ICON, ICON_MoveZ, 187, Status_Row_3 - 1);
+  DWIN_ICON_Show(ICON, ICON_MoveX, 13, Status_Row_3 - 1);
+  DWIN_ICON_Show(ICON, ICON_MoveY, 96, Status_Row_3 - 1);
+  DWIN_ICON_Show(ICON, ICON_MoveZ, 179, Status_Row_3 - 1);
   DWIN_Draw_String(true, true, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 35, Status_Row_3, F(" --- "));
   DWIN_Draw_String(true, true, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 121, Status_Row_3, F(" --- "));
   DWIN_Draw_String(true, true, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 207, Status_Row_3, F(" --- "));
