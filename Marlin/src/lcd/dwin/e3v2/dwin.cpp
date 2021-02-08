@@ -585,7 +585,7 @@ inline void Item_Prepare_Home(const uint8_t row) {
       #if HAS_BED_PROBE
         DWIN_Frame_AreaCopy(1, 174, 164, 223, 177, LBLX, MBASE(row));
         DWIN_Draw_Signed_Float(font8x16, Color_White, Color_Bg_Black, 2, 2, 202, MBASE(row), BABY_Z_VAR * 100);
-        DWIN_Draw_Signed_Float(font8x16, Color_Bg_Black, 2, 2, 202, MBASE(row), probe.offset.z * 100);
+        DWIN_Draw_Signed_Float(font8x16, Color_White, Color_Bg_Black, 2, 2, 202, MBASE(row), probe.offset.z * 100);
       #else
         DWIN_Frame_AreaCopy(1, 43, 89, 98, 101, LBLX, MBASE(row));
       #endif
@@ -593,7 +593,7 @@ inline void Item_Prepare_Home(const uint8_t row) {
     else {
       #if HAS_BED_PROBE
         DWIN_Frame_AreaCopy(1, 93, 179, 141, 189, LBLX, MBASE(row));    // "Z-Offset"
-        DWIN_Draw_Signed_Float(font8x16, Color_Bg_Black, 2, 2, 202, MBASE(row), probe.offset.z * 100);
+        DWIN_Draw_Signed_Float(font8x16, Color_White, Color_Bg_Black, 2, 2, 202, MBASE(row), probe.offset.z * 100);
       #else
         DWIN_Frame_AreaCopy(1, 1, 76, 106, 86, LBLX, MBASE(row));       // "..."
       #endif
@@ -1224,7 +1224,7 @@ void HMI_Move_Z() {
         checkkey = AxisMove;
         EncoderRate.enabled = false;
         last_E_scale = HMI_ValueStruct.Move_E_scale;
-        DWIN_Draw_Signed_Float(font8x16, Color_Bg_Black, 3, UNITFDIGITS, 216, MBASE(4), HMI_ValueStruct.Move_E_scale);
+        DWIN_Draw_Signed_Float(font8x16, Color_White, Color_Bg_Black, 3, UNITFDIGITS, 216, MBASE(4), HMI_ValueStruct.Move_E_scale);
         if (!planner.is_full()) {
           planner.synchronize(); // Wait for planner moves to finish!
           planner.buffer_line(current_position, MMM_TO_MMS(FEEDRATE_E), active_extruder);
@@ -1237,7 +1237,7 @@ void HMI_Move_Z() {
       else if ((last_E_scale - HMI_ValueStruct.Move_E_scale) > (EXTRUDE_MAXLENGTH) * MINUNITMULT)
         HMI_ValueStruct.Move_E_scale = last_E_scale - (EXTRUDE_MAXLENGTH) * MINUNITMULT;
       current_position.e = HMI_ValueStruct.Move_E_scale / MINUNITMULT;
-      DWIN_Draw_Signed_Float(font8x16, Select_Color, 3, UNITFDIGITS, 216, MBASE(4), HMI_ValueStruct.Move_E_scale);
+      DWIN_Draw_Signed_Float(font8x16, Color_White, Select_Color, 3, UNITFDIGITS, 216, MBASE(4), HMI_ValueStruct.Move_E_scale);
       DWIN_UpdateLCD();
     }
   }
@@ -1263,7 +1263,7 @@ void HMI_Move_Z() {
           TERN_(EEPROM_SETTINGS, settings.save());
         #endif
         checkkey = HMI_ValueStruct.show_mode == -4 ? Prepare : Tune;
-        DWIN_Draw_Signed_Float(font8x16, Color_Bg_Black, 2, 2, 202, MBASE(zoff_line), TERN(HAS_BED_PROBE, BABY_Z_VAR * 100, HMI_ValueStruct.offset_value));
+        DWIN_Draw_Signed_Float(font8x16, Color_White, Color_Bg_Black, 2, 2, 202, MBASE(zoff_line), TERN(HAS_BED_PROBE, BABY_Z_VAR * 100, HMI_ValueStruct.offset_value));
         DWIN_UpdateLCD();
         return;
       }
@@ -1890,9 +1890,9 @@ void Draw_Status_Area(const bool with_update) {
 
   /* Z-axis offset icon, origY=429 */
   #if HAS_ZOFFSET_ITEM
-    DWIN_ICON_Show(ICON, ICON_Zoffset, 158, 428);
+    DWIN_ICON_Show(ICON, ICON_Zoffset, 158, Status_Row_2 - 1);
     dwin_zoffset = BABY_Z_VAR;
-    DWIN_Draw_Signed_Float(DWIN_FONT_STAT, Color_Bg_Black, 2, 2, 178, 429, dwin_zoffset * 100);
+    DWIN_Draw_Signed_Float(DWIN_FONT_STAT, Color_White, Color_Bg_Black, 2, 2, 178, Status_Row_2, dwin_zoffset * 100);
   #endif
 
   /* X Y Z icon */
@@ -2394,7 +2394,7 @@ void HMI_Prepare() {
         DWIN_Draw_FloatValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, UNITFDIGITS, 216, MBASE(3), current_position.z * MINUNITMULT);
         #if HAS_HOTEND
           HMI_ValueStruct.Move_E_scale = current_position.e * MINUNITMULT;
-          DWIN_Draw_Signed_Float(font8x16, Color_Bg_Black, 3, 1, 216, MBASE(4), HMI_ValueStruct.Move_E_scale);
+          DWIN_Draw_Signed_Float(font8x16, Color_White, Color_Bg_Black, 3, 1, 216, MBASE(4), HMI_ValueStruct.Move_E_scale);
         #endif
         break;
       case PREPARE_CASE_DISA: // Disable steppers
