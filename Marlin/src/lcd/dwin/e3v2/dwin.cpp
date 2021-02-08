@@ -89,10 +89,10 @@
   #define MACHINE_SIZE STRINGIFY(X_BED_SIZE) "x" STRINGIFY(Y_BED_SIZE) "x" STRINGIFY(Z_MAX_POS)
 #endif
 #ifndef CORP_WEBSITE_C
-  #define CORP_WEBSITE_C "www.cxsw3d.com"
+  #define CORP_WEBSITE_C "https://monokeith.top"
 #endif
 #ifndef CORP_WEBSITE_E
-  #define CORP_WEBSITE_E "www.creality.com"
+  #define CORP_WEBSITE_E "https://monokeith.top"
 #endif
 
 #define PAUSE_HEAT
@@ -229,17 +229,6 @@ void HMI_ToggleLanguage() {
   #if BOTH(EEPROM_SETTINGS, IIC_BL24CXX_EEPROM)
     BL24CXX::write(DWIN_LANGUAGE_EEPROM_ADDRESS, (uint8_t*)&HMI_flag.language, sizeof(HMI_flag.language));
   #endif
-}
-
-void DWIN_Draw_Signed_Float(uint8_t size, uint16_t bColor, uint8_t iNum, uint8_t fNum, uint16_t x, uint16_t y, long value) {
-  if (value < 0) {
-    DWIN_Draw_String(false, true, size, Color_White, bColor, x - 6, y, F("-"));
-    DWIN_Draw_FloatValue(true, true, 0, size, Color_White, bColor, iNum, fNum, x, y, -value);
-  }
-  else {
-    DWIN_Draw_String(false, true, size, Color_White, bColor, x - 6, y, F(" "));
-    DWIN_Draw_FloatValue(true, true, 0, size, Color_White, bColor, iNum, fNum, x, y, value);
-  }
 }
 
 void ICON_Print() {
@@ -595,6 +584,7 @@ inline void Item_Prepare_Home(const uint8_t row) {
     if (HMI_IsChinese()) {
       #if HAS_BED_PROBE
         DWIN_Frame_AreaCopy(1, 174, 164, 223, 177, LBLX, MBASE(row));
+        DWIN_Draw_Signed_Float(font8x16, Color_White, Color_Bg_Black, 2, 2, 202, MBASE(row), BABY_Z_VAR * 100);
         DWIN_Draw_Signed_Float(font8x16, Color_Bg_Black, 2, 2, 202, MBASE(row), probe.offset.z * 100);
       #else
         DWIN_Frame_AreaCopy(1, 43, 89, 98, 101, LBLX, MBASE(row));
@@ -847,7 +837,7 @@ inline void Draw_Tune_Menu() {
   #endif
   #if HAS_ZOFFSET_ITEM
     Draw_Menu_Line(TUNE_CASE_ZOFF, ICON_Zoffset);
-    DWIN_Draw_Signed_Float(font8x16, Color_Bg_Black, 2, 2, 202, MBASE(TUNE_CASE_ZOFF), BABY_Z_VAR * 100);
+    DWIN_Draw_Signed_Float(font8x16, Color_White, Color_Bg_Black, 2, 2, 202, MBASE(TUNE_CASE_ZOFF), BABY_Z_VAR * 100);
   #endif
 }
 
@@ -1284,7 +1274,7 @@ void HMI_Move_Z() {
       #if EITHER(BABYSTEP_ZPROBE_OFFSET, JUST_BABYSTEP)
         if (BABYSTEP_ALLOWED()) babystep.add_mm(Z_AXIS, dwin_zoffset - last_zoffset);
       #endif
-      DWIN_Draw_Signed_Float(font8x16, Select_Color, 2, 2, 202, MBASE(zoff_line), HMI_ValueStruct.offset_value);
+      DWIN_Draw_Signed_Float(font8x16, Color_White, Select_Color, 2, 2, 202, MBASE(zoff_line), HMI_ValueStruct.offset_value);
       DWIN_UpdateLCD();
     }
   }
@@ -1530,6 +1520,22 @@ void HMI_StepXYZE() {
   }
 }
 
+// Pick a color corresponding to temperature
+int16_t DWIN_Temp_Colorize(float temp){
+  switch ((int)temp) {
+    case 0 ... 39:
+      return Color_Green;
+    case 40 ... 59:
+      return Color_Yellow;
+    case 60 ... 99:
+      return Color_Orange;
+    case 100 ... 300:
+      return Color_Red;
+    default:
+      return Color_White;
+  }
+}
+
 void update_variable() {
   #if HAS_HOTEND
     static float last_temp_hotend_target = 0, last_temp_hotend_current = 0;
@@ -1577,38 +1583,87 @@ void update_variable() {
     #endif
   }
 
-  /* Bottom temperature update */
+  /*
+    Bottom area text updates.
+  */
+  float displayInteger;
+
+  /* Bottom nozzle temperature update, originalY=382 */
   #if HAS_HOTEND
-    if (last_temp_hotend_current != thermalManager.temp_hotend[0].celsius) {
-      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33, 382, thermalManager.temp_hotend[0].celsius);
-      last_temp_hotend_current = thermalManager.temp_hotend[0].celsius;
+    // Current Temp
+    displayInteger = thermalManager.temp_hotend[0].celsius;
+    if (last_temp_hotend_current != displayInteger) {
+      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, DWIN_Temp_Colorize(displayInteger), Color_Bg_Black, 3, 
+                          33, Status_Row_1, displayInteger);
+      last_temp_hotend_current = displayInteger;
     }
-    if (last_temp_hotend_target != thermalManager.temp_hotend[0].target) {
-      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33 + 4 * STAT_CHR_W + 6, 382, thermalManager.temp_hotend[0].target);
-      last_temp_hotend_target = thermalManager.temp_hotend[0].target;
+    // Target Temp
+    displayInteger = thermalManager.temp_hotend[0].target;
+    if (last_temp_hotend_target != displayInteger) {
+      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, DWIN_Temp_Colorize(displayInteger), Color_Bg_Black, 3, 
+                          33 + 4 * STAT_CHR_W + 6, Status_Row_1, displayInteger);
+      last_temp_hotend_target = displayInteger;
     }
   #endif
+
+  /* Bottom bed temperature update, originalY=382 */
   #if HAS_HEATED_BED
-    if (last_temp_bed_current != thermalManager.temp_bed.celsius) {
-      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 178, 382, thermalManager.temp_bed.celsius);
-      last_temp_bed_current = thermalManager.temp_bed.celsius;
+    // Current Temp
+    displayInteger = thermalManager.temp_bed.celsius;
+    if (last_temp_bed_current != displayInteger) {
+      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_Green, Color_Bg_Black, 3, 
+                          178, Status_Row_1, displayInteger);
+      last_temp_bed_current = displayInteger;
     }
-    if (last_temp_bed_target != thermalManager.temp_bed.target) {
-      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 178 + 4 * STAT_CHR_W + 6, 382, thermalManager.temp_bed.target);
-      last_temp_bed_target = thermalManager.temp_bed.target;
+    // Target Temp
+    displayInteger = thermalManager.temp_bed.target;
+    if (last_temp_bed_target != displayInteger) {
+      DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_Purple, Color_Bg_Black, 3, 
+                          178 + 4 * STAT_CHR_W + 6, Status_Row_1, displayInteger);
+      last_temp_bed_target = displayInteger;
     }
   #endif
+
+  /* Bottom print speed update, originalY=429 */
   static uint16_t last_speed = 0;
   if (last_speed != feedrate_percentage) {
-    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33 + 2 * STAT_CHR_W, 429, feedrate_percentage);
+    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 
+                        33 + 2 * STAT_CHR_W, Status_Row_2, feedrate_percentage);
     last_speed = feedrate_percentage;
   }
+
+  /* Bottom z-axis offset update, originalY=429*/
   #if HAS_ZOFFSET_ITEM
     if (last_zoffset != BABY_Z_VAR) {
-      DWIN_Draw_Signed_Float(DWIN_FONT_STAT, Color_Bg_Black, 2, 2, 178 + STAT_CHR_W, 429, BABY_Z_VAR * 100);
+      DWIN_Draw_Signed_Float(DWIN_FONT_STAT, Color_White, Color_Bg_Black, 2, 2, 
+                              178 + STAT_CHR_W, Status_Row_2, BABY_Z_VAR * 100);
       last_zoffset = BABY_Z_VAR;
     }
   #endif
+
+  /* X Y Z coordinates */
+  static float last_position_x, last_position_y, last_position_z, displayFloat;
+  // x
+  displayFloat = current_position.x * MINUNITMULT;
+  if (last_position_x != displayFloat) {
+    DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 1,
+                          35, Status_Row_3, displayFloat);
+    last_position_x = displayFloat;
+  }
+  // y
+  displayFloat = current_position.y * MINUNITMULT;
+  if (last_position_y != displayFloat){
+    DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 1,
+                          121, Status_Row_3, displayFloat);
+    last_position_y = displayFloat;
+  }
+  // z
+  displayFloat = current_position.z * MINUNITMULT;
+  if (last_position_z != displayFloat){
+    DWIN_Draw_FloatValue(true, true, 1, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 1,
+                          207, Status_Row_3, displayFloat);
+    last_position_z = displayFloat;
+  }
 }
 
 /**
@@ -1806,32 +1861,41 @@ void Draw_Status_Area(const bool with_update) {
   //
   // Status Area
   //
+  /* Nozzle Temp icon, origY=382 */
   #if HAS_HOTEND
-    DWIN_ICON_Show(ICON, ICON_HotendTemp, 13, 381);
-    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33, 382, thermalManager.temp_hotend[0].celsius);
-    DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 33 + 3 * STAT_CHR_W + 5, 383, F("/"));
-    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33 + 4 * STAT_CHR_W + 6, 382, thermalManager.temp_hotend[0].target);
+    DWIN_ICON_Show(ICON, ICON_HotendTemp, 13, Status_Row_1 - 1);
+    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33, Status_Row_1, thermalManager.temp_hotend[0].celsius);
+    DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 33 + 3 * STAT_CHR_W + 5, Status_Row_1, F("/"));
+    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33 + 4 * STAT_CHR_W + 6, Status_Row_1, thermalManager.temp_hotend[0].target);
   #endif
   #if HOTENDS > 1
     // DWIN_ICON_Show(ICON,ICON_HotendTemp, 13, 381);
   #endif
 
+  /* Bed icon, origY=382 */
   #if HAS_HEATED_BED
-    DWIN_ICON_Show(ICON, ICON_BedTemp, 158, 381);
-    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 178, 382, thermalManager.temp_bed.celsius);
-    DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 178 + 3 * STAT_CHR_W + 5, 383, F("/"));
-    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 178 + 4 * STAT_CHR_W + 6, 382, thermalManager.temp_bed.target);
+    DWIN_ICON_Show(ICON, ICON_BedTemp, 158, Status_Row_1 - 1);
+    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 178, Status_Row_1, thermalManager.temp_bed.celsius);
+    DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 178 + 3 * STAT_CHR_W + 5, Status_Row_1, F("/"));
+    DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 178 + 4 * STAT_CHR_W + 6, Status_Row_1, thermalManager.temp_bed.target);
   #endif
+  
+  /* Print Speed icon, origY=429 */
+  DWIN_ICON_Show(ICON, ICON_Speed, 13, Status_Row_2 - 1);
+  DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33 + 2 * STAT_CHR_W, Status_Row_2, feedrate_percentage);
+  DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 33 + 5 * STAT_CHR_W + 2, Status_Row_2, F("%"));
 
-  DWIN_ICON_Show(ICON, ICON_Speed, 13, 429);
-  DWIN_Draw_IntValue(true, true, 0, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 3, 33 + 2 * STAT_CHR_W, 429, feedrate_percentage);
-  DWIN_Draw_String(false, false, DWIN_FONT_STAT, Color_White, Color_Bg_Black, 33 + 5 * STAT_CHR_W + 2, 429, F("%"));
-
+  /* Z-axis offset icon, origY=429 */
   #if HAS_ZOFFSET_ITEM
     DWIN_ICON_Show(ICON, ICON_Zoffset, 158, 428);
     dwin_zoffset = BABY_Z_VAR;
     DWIN_Draw_Signed_Float(DWIN_FONT_STAT, Color_Bg_Black, 2, 2, 178, 429, dwin_zoffset * 100);
   #endif
+
+  /* X Y Z icon */
+  DWIN_ICON_Show(ICON, ICON_MoveX, 15, Status_Row_3 - 1);
+  DWIN_ICON_Show(ICON, ICON_MoveY, 101, Status_Row_3 - 1);
+  DWIN_ICON_Show(ICON, ICON_MoveZ, 187, Status_Row_3 - 1);
 
   if (with_update) {
     DWIN_UpdateLCD();
@@ -2341,7 +2405,7 @@ void HMI_Prepare() {
             checkkey = Homeoffset;
             HMI_ValueStruct.show_mode = -4;
             HMI_ValueStruct.offset_value = BABY_Z_VAR * 100;
-            DWIN_Draw_Signed_Float(font8x16, Select_Color, 2, 2, 202, MBASE(PREPARE_CASE_ZOFF + MROWS - index_prepare), HMI_ValueStruct.offset_value);
+            DWIN_Draw_Signed_Float(font8x16, Color_White, Select_Color, 2, 2, 202, MBASE(PREPARE_CASE_ZOFF + MROWS - index_prepare), HMI_ValueStruct.offset_value);
             EncoderRate.enabled = true;
           #else
             // Apply workspace offset, making the current position 0,0,0
@@ -2578,7 +2642,7 @@ void HMI_AxisMove() {
         DWIN_Draw_FloatValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, 1, 216, MBASE(1), HMI_ValueStruct.Move_X_scale);
         DWIN_Draw_FloatValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, 1, 216, MBASE(2), HMI_ValueStruct.Move_Y_scale);
         DWIN_Draw_FloatValue(true, true, 0, font8x16, Color_White, Color_Bg_Black, 3, 1, 216, MBASE(3), HMI_ValueStruct.Move_Z_scale);
-        DWIN_Draw_Signed_Float(font8x16, Color_Bg_Black, 3, 1, 216, MBASE(4), 0);
+        DWIN_Draw_Signed_Float(font8x16, Color_White, Color_Bg_Black, 3, 1, 216, MBASE(4), 0);
         DWIN_UpdateLCD();
       }
       return;
@@ -2631,7 +2695,7 @@ void HMI_AxisMove() {
             #endif
             checkkey = Extruder;
             HMI_ValueStruct.Move_E_scale = current_position.e * MINUNITMULT;
-            DWIN_Draw_Signed_Float(font8x16, Select_Color, 3, 1, 216, MBASE(4), HMI_ValueStruct.Move_E_scale);
+            DWIN_Draw_Signed_Float(font8x16, Color_White, Select_Color, 3, 1, 216, MBASE(4), HMI_ValueStruct.Move_E_scale);
             EncoderRate.enabled = true;
             break;
         #endif
@@ -3211,7 +3275,7 @@ void HMI_Tune() {
           #if EITHER(HAS_BED_PROBE, BABYSTEPPING)
             checkkey = Homeoffset;
             HMI_ValueStruct.offset_value = BABY_Z_VAR * 100;
-            DWIN_Draw_Signed_Float(font8x16, Select_Color, 2, 2, 202, MBASE(TUNE_CASE_ZOFF + MROWS - index_tune), HMI_ValueStruct.offset_value);
+            DWIN_Draw_Signed_Float(font8x16, Color_White, Select_Color, 2, 2, 202, MBASE(TUNE_CASE_ZOFF + MROWS - index_tune), HMI_ValueStruct.offset_value);
             EncoderRate.enabled = true;
           #else
             // Apply workspace offset, making the current position 0,0,0
